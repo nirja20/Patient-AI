@@ -14,8 +14,11 @@ def _get_client():
         return client
     if Groq is None:
         return None
+    api_key = (os.getenv("GROQ_API_KEY", "") or "").strip()
+    if not api_key:
+        return None
     try:
-        client = Groq(api_key=os.getenv("GROQ_API_KEY", ""))
+        client = Groq(api_key=api_key)
     except Exception:
         return None
     return client
@@ -114,17 +117,19 @@ def detect_language(text):
     if active_client is None:
         return "en"
 
-    response = active_client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
-        messages=[
-            {"role": "system", "content": "Detect the language of the following text. Only return language code like en, hi, fr, etc."},
-            {"role": "user", "content": text}
-        ],
-        temperature=0
-    )
-
-    raw = response.choices[0].message.content
-    return _normalize_lang_code(raw)
+    try:
+        response = active_client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[
+                {"role": "system", "content": "Detect the language of the following text. Only return language code like en, hi, fr, etc."},
+                {"role": "user", "content": text}
+            ],
+            temperature=0
+        )
+        raw = response.choices[0].message.content
+        return _normalize_lang_code(raw)
+    except Exception:
+        return "en"
 
 
 def _translate_with_prompt(system_prompt, text, model="llama-3.1-8b-instant"):
@@ -132,15 +137,18 @@ def _translate_with_prompt(system_prompt, text, model="llama-3.1-8b-instant"):
     if active_client is None:
         return text
 
-    response = active_client.chat.completions.create(
-        model=model,
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": text},
-        ],
-        temperature=0,
-    )
-    return (response.choices[0].message.content or "").strip()
+    try:
+        response = active_client.chat.completions.create(
+            model=model,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": text},
+            ],
+            temperature=0,
+        )
+        return (response.choices[0].message.content or "").strip()
+    except Exception:
+        return text
 
 
 # 🔁 Translate to English
