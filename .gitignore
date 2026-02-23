@@ -1,0 +1,18 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+
+# Django/Env
+.env
+health_ai/.env
+frontend/.env
+
+# Node/React
+frontend/node_modules/
+frontend/build/
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.vscode/

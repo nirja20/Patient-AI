@@ -1,0 +1,284 @@
+[
+  {
+    "keyword": "fever",
+    "symptoms": ["high temperature", "body pain", "chills"],
+    "possible_causes": "Viral infection, flu, bacterial infection",
+    "home_care": "Take paracetamol, rest well, drink fluids.",
+    "when_to_visit": "If fever lasts more than 3 days or exceeds 103°F."
+  },
+  {
+    "keyword": "cold",
+    "symptoms": ["sneezing", "runny nose", "sore throat"],
+    "possible_causes": "Common cold virus",
+    "home_care": "Warm fluids and rest.",
+    "when_to_visit": "If symptoms last more than 7 days."
+  },
+  {
+    "keyword": "cough",
+    "symptoms": ["dry cough", "wet cough"],
+    "possible_causes": "Cold, infection, allergy",
+    "home_care": "Warm water, honey.",
+    "when_to_visit": "If cough lasts more than 2 weeks."
+  },
+  {
+    "keyword": "headache",
+    "symptoms": ["head pain", "pressure in head"],
+    "possible_causes": "Stress, dehydration",
+    "home_care": "Rest and hydration.",
+    "when_to_visit": "If severe or frequent."
+  },
+  {
+    "keyword": "migraine",
+    "symptoms": ["severe headache", "light sensitivity"],
+    "possible_causes": "Hormonal change, stress",
+    "home_care": "Rest in dark room.",
+    "when_to_visit": "If unusual pattern."
+  },
+  {
+    "keyword": "stomach pain",
+    "symptoms": ["abdominal cramps", "bloating"],
+    "possible_causes": "Indigestion, gas",
+    "home_care": "Light diet.",
+    "when_to_visit": "If severe pain."
+  },
+  {
+    "keyword": "diarrhea",
+    "symptoms": ["loose stools", "dehydration"],
+    "possible_causes": "Infection",
+    "home_care": "ORS and fluids.",
+    "when_to_visit": "If dehydration signs."
+  },
+  {
+    "keyword": "vomiting",
+    "symptoms": ["nausea", "throwing up"],
+    "possible_causes": "Food poisoning",
+    "home_care": "Sip water slowly.",
+    "when_to_visit": "If persistent."
+  },
+  {
+    "keyword": "back pain",
+    "symptoms": ["lower back pain", "stiffness"],
+    "possible_causes": "Muscle strain",
+    "home_care": "Hot compress.",
+    "when_to_visit": "If numbness occurs."
+  },
+  {
+    "keyword": "neck pain",
+    "symptoms": ["stiff neck"],
+    "possible_causes": "Poor posture",
+    "home_care": "Stretching.",
+    "when_to_visit": "If severe."
+  },
+  {
+    "keyword": "asthma",
+    "symptoms": ["shortness of breath", "wheezing"],
+    "possible_causes": "Allergens",
+    "home_care": "Use inhaler.",
+    "when_to_visit": "If breathing worsens."
+  },
+  {
+    "keyword": "chest pain",
+    "symptoms": ["pressure", "tightness"],
+    "possible_causes": "Heart issue",
+    "home_care": "Rest.",
+    "when_to_visit": "Emergency immediately."
+  },
+  {
+    "keyword": "toothache",
+    "symptoms": ["tooth pain"],
+    "possible_causes": "Cavity",
+    "home_care": "Salt water rinse.",
+    "when_to_visit": "If swelling increases."
+  },
+  {
+    "keyword": "ear pain",
+    "symptoms": ["earache"],
+    "possible_causes": "Infection",
+    "home_care": "Warm compress.",
+    "when_to_visit": "If fever develops."
+  },
+  {
+    "keyword": "diabetes",
+    "symptoms": ["frequent urination", "fatigue"],
+    "possible_causes": "High blood sugar",
+    "home_care": "Monitor sugar.",
+    "when_to_visit": "If uncontrolled."
+  },
+  {
+    "keyword": "high blood pressure",
+    "symptoms": ["headache", "dizziness"],
+    "possible_causes": "Stress",
+    "home_care": "Reduce salt.",
+    "when_to_visit": "If BP high consistently."
+  },
+  {
+    "keyword": "low blood pressure",
+    "symptoms": ["fainting"],
+    "possible_causes": "Dehydration",
+    "home_care": "Drink fluids.",
+    "when_to_visit": "If repeated."
+  },
+  {
+    "keyword": "anemia",
+    "symptoms": ["fatigue", "pale skin"],
+    "possible_causes": "Iron deficiency",
+    "home_care": "Iron rich food.",
+    "when_to_visit": "If worsening."
+  },
+  {
+    "keyword": "dengue",
+    "symptoms": ["high fever", "joint pain"],
+    "possible_causes": "Mosquito virus",
+    "home_care": "Rest and fluids.",
+    "when_to_visit": "If bleeding."
+  },
+  {
+    "keyword": "malaria",
+    "symptoms": ["fever with chills"],
+    "possible_causes": "Parasite infection",
+    "home_care": "Medication.",
+    "when_to_visit": "If persistent fever."
+  },
+
+  {
+    "keyword": "covid",
+    "symptoms": ["dry cough", "loss of smell"],
+    "possible_causes": "Coronavirus",
+    "home_care": "Isolation.",
+    "when_to_visit": "If oxygen drops."
+  },
+  {
+    "keyword": "pneumonia",
+    "symptoms": ["cough with phlegm", "chest pain"],
+    "possible_causes": "Lung infection",
+    "home_care": "Antibiotics.",
+    "when_to_visit": "If breathing worsens."
+  },
+  {
+    "keyword": "kidney stone",
+    "symptoms": ["back pain", "painful urination"],
+    "possible_causes": "Mineral buildup",
+    "home_care": "Drink water.",
+    "when_to_visit": "If severe pain."
+  },
+  {
+    "keyword": "urinary infection",
+    "symptoms": ["burning urination"],
+    "possible_causes": "Bacterial infection",
+    "home_care": "Hydration.",
+    "when_to_visit": "If fever develops."
+  },
+  {
+    "keyword": "thyroid",
+    "symptoms": ["weight change", "hair fall"],
+    "possible_causes": "Hormone imbalance",
+    "home_care": "Regular medicine.",
+    "when_to_visit": "If abnormal tests."
+  },
+  {
+    "keyword": "depression",
+    "symptoms": ["low mood"],
+    "possible_causes": "Stress",
+    "home_care": "Counseling.",
+    "when_to_visit": "If suicidal thoughts."
+  },
+  {
+    "keyword": "anxiety",
+    "symptoms": ["restlessness", "rapid heartbeat"],
+    "possible_causes": "Stress disorder",
+    "home_care": "Breathing exercise.",
+    "when_to_visit": "If panic attacks frequent."
+  },
+  {
+    "keyword": "arthritis",
+    "symptoms": ["joint pain", "stiffness"],
+    "possible_causes": "Joint inflammation",
+    "home_care": "Light exercise.",
+    "when_to_visit": "If mobility reduces."
+  },
+  {
+    "keyword": "gout",
+    "symptoms": ["swollen toe"],
+    "possible_causes": "High uric acid",
+    "home_care": "Avoid red meat.",
+    "when_to_visit": "If severe pain."
+  },
+  {
+    "keyword": "ulcer",
+    "symptoms": ["burning stomach pain"],
+    "possible_causes": "Bacterial infection",
+    "home_care": "Avoid spicy food.",
+    "when_to_visit": "If vomiting blood."
+  },
+
+  {
+    "keyword": "hepatitis",
+    "symptoms": ["yellow skin"],
+    "possible_causes": "Liver infection",
+    "home_care": "Rest.",
+    "when_to_visit": "If jaundice worsens."
+  },
+  {
+    "keyword": "stroke",
+    "symptoms": ["slurred speech"],
+    "possible_causes": "Blocked blood flow",
+    "home_care": "None.",
+    "when_to_visit": "Emergency immediately."
+  },
+  {
+    "keyword": "heart attack",
+    "symptoms": ["chest pressure"],
+    "possible_causes": "Blocked artery",
+    "home_care": "Call emergency.",
+    "when_to_visit": "Immediately."
+  },
+  {
+    "keyword": "obesity",
+    "symptoms": ["weight gain"],
+    "possible_causes": "High calorie intake",
+    "home_care": "Diet and exercise.",
+    "when_to_visit": "If complications."
+  },
+  {
+    "keyword": "insomnia",
+    "symptoms": ["difficulty sleeping"],
+    "possible_causes": "Stress",
+    "home_care": "Sleep routine.",
+    "when_to_visit": "If persistent."
+  },
+  {
+    "keyword": "constipation",
+    "symptoms": ["hard stool"],
+    "possible_causes": "Low fiber diet",
+    "home_care": "Fiber intake.",
+    "when_to_visit": "If severe pain."
+  },
+  {
+    "keyword": "skin rash",
+    "symptoms": ["itching", "red patches"],
+    "possible_causes": "Allergy",
+    "home_care": "Apply soothing cream.",
+    "when_to_visit": "If spreading fast."
+  },
+  {
+    "keyword": "acne",
+    "symptoms": ["pimples"],
+    "possible_causes": "Hormonal changes",
+    "home_care": "Mild cleanser.",
+    "when_to_visit": "If scarring."
+  },
+  {
+    "keyword": "hair fall",
+    "symptoms": ["hair thinning"],
+    "possible_causes": "Stress",
+    "home_care": "Balanced diet.",
+    "when_to_visit": "If excessive."
+  },
+  {
+    "keyword": "appendicitis",
+    "symptoms": ["right lower abdominal pain"],
+    "possible_causes": "Appendix inflammation",
+    "home_care": "None.",
+    "when_to_visit": "Immediate surgery needed."
+  }
+]
