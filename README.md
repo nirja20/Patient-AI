@@ -1,45 +1,55 @@
-# Patient Chatbot (MediAssist AI)
+# 🏥 Patient Chatbot (MediAssist AI)
 
-AI-powered multilingual healthcare assistant that lets users chat by text/voice and upload medical reports (PDF/images) to get brief summaries, matched FAQ guidance, home-care advice, and when-to-visit-doctor recommendations.
+AI-powered multilingual healthcare assistant that enables users to chat via text/voice and upload medical reports (PDF/images) to receive concise summaries, matched FAQ guidance, home-care advice, and doctor-visit recommendations.
 
-## Tech Stack
+---
 
-### Frontend
-**React (react, react-dom, react-scripts)**
-**JavaScript (CRA structure)**
-Axios / Fetch for API integration
-Tailwind/PostCSS support (configured)
-Responsive UI with chat window, sidebar, auth, profile/settings
+## 🚀 Tech Stack
 
-### Backend
-Django 6 + Django REST Framework
-JWT Authentication (djangorestframework-simplejwt)
-Google OAuth login (Google Identity Services token verification)
-OCR and report text extraction:
-pytesseract for images
-pdfplumber for PDFs
-Multilingual pipeline (English, Hindi, Gujarati):
-language detection
-translation in/out
-FAQ matching
+**Frontend:** React (CRA) + JavaScript + Tailwind CSS + Axios  
+**Backend:** Django 6 + Django REST Framework + JWT Auth + Google OAuth  
+**OCR & Processing:** pytesseract (images) + pdfplumber (PDFs) + multilingual pipeline (EN/HI/GU)  
+**Database:** PostgreSQL (healthdb)
 
-### Database
-PostgreSQL
-DB name: healthdb
-Used for users, chat history, conversations, uploaded reports, FAQ-related entities
+---
 
-## Run Locally
+## 🛠 Features
 
-1. Backend
+- Multilingual chat (English, Hindi, Gujarati)
+- Medical report upload (PDF & images)
+- OCR-based report text extraction
+- AI-generated report summaries
+- FAQ matching & guidance
+- Home-care suggestions
+- Doctor visit recommendations
+- JWT Authentication
+- Google OAuth Login
+- Chat history storage
+- Responsive UI with sidebar & profile settings
+
+---
+
+## ⚙️ Run Locally
+
+### 1️⃣ Backend
+
+```bash
 cd health_ai
 python -m venv venv
-venv\Scripts\activate    # Windows
+venv\Scripts\activate     # Windows
 pip install -r requirements.txt
 python manage.py migrate
 python manage.py runserver
+```
 
-2. Frontend
+---
+
+### 2️⃣ Frontend
+
+```bash
 cd frontend
 npm install
 npm start
+```
 
+---
