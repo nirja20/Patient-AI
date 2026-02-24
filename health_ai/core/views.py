@@ -86,11 +86,34 @@ def _build_brief_file_summary(extracted_text):
     value = re.sub(r"\bTranslation\s+from\s+English\s+to\s+Hindi\b", " ", value, flags=re.IGNORECASE)
     value = re.sub(r"\s+", " ", value).strip()
 
-    # Prefer first meaningful chunks over the full noisy body.
-    chunks = [part.strip(" -:;,.") for part in re.split(r"[.!?]\s+|[\n\r]+", value) if part.strip()]
-    summary = " ".join(chunks[:2]).strip()
-    if not summary:
-        summary = value
+    disease = _extract_report_field(
+        value,
+        ["Disease Name", "Disease", "Name of the disease", "Illness", "Condition"],
+    )
+    symptoms = _extract_report_field(
+        value,
+        ["Symptoms", "Symptom", "Common symptoms"],
+    )
+
+    # Prefer structured fields when they are available.
+    if disease or symptoms:
+        parts = []
+        if disease:
+            parts.append(f"Disease: {disease}")
+        if symptoms:
+            parts.append(f"Symptoms: {symptoms}")
+        summary = "\n".join(parts).strip()
+    else:
+        # Prefer first meaningful chunks over the full noisy body.
+        chunks = [part.strip(" -:;,.") for part in re.split(r"[.!?]\s+|[\n\r]+", value) if part.strip()]
+        summary = " ".join(chunks[:2]).strip()
+        if not summary:
+            summary = value
+
+    # Remove frequent OCR uppercase token noise (e.g., "WRI WA SIS").
+    summary = re.sub(r"\b[A-Z]{2,4}\b", " ", summary)
+    summary = re.sub(r"\$+\d+\s*:?", " ", summary)
+    summary = re.sub(r"\s+", " ", summary).strip()
 
     # Keep key report headings readable on separate lines.
     summary = re.sub(r"\s*(Disease\s*:)\s*", r"\n\1 ", summary, flags=re.IGNORECASE)
@@ -105,6 +128,12 @@ def _build_brief_file_summary(extracted_text):
     summary = re.sub(r"\s*(Medical\s+Report\s*:)\s*", r"\n\1 ", summary, flags=re.IGNORECASE)
     summary = re.sub(r"\s*(Common\s+symptoms\s*:)\s*", r"\n\1 ", summary, flags=re.IGNORECASE)
     summary = re.sub(r"\s*(Name\s+of\s+the\s+disease\s*:)\s*", r"\n\1 ", summary, flags=re.IGNORECASE)
+
+    # If summary still looks noisy, keep output safe and readable.
+    tokens = [token for token in re.split(r"\s+", summary) if token]
+    short_tokens = sum(1 for token in tokens if len(token) <= 2)
+    if tokens and (short_tokens / len(tokens)) > 0.35:
+        summary = "Not clearly found from uploaded text."
 
     summary = summary[:260].rstrip(" ,;:.")
     return f"Brief Summary from file:\n{summary}"

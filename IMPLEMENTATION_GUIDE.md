@@ -6,6 +6,35 @@ This file documents:
 
 ## 1) Logic-Wise Mapping (What is implemented where)
 
+### Quick Index (Exact file + part)
+
+- Backend core request orchestration:
+  - `health_ai/core/views.py`
+    - `chat_view` (chat API pipeline)
+    - `upload_report_view` (report upload + OCR + FAQ + translation response)
+    - `_generate_chat_response` (language detect -> translate -> FAQ match -> translate back)
+    - `_extract_text_from_file` (PDF/image text extraction entry)
+    - `_ocr_image_text` + `_resolve_ocr_lang` + `_preferred_to_ocr_lang` (OCR language routing)
+    - `_build_brief_file_summary` (brief summary block for uploaded file response)
+- Backend language/AI/search helpers:
+  - `health_ai/core/translation.py`
+    - `detect_language`, `translate_to_en`, `translate_back`
+  - `health_ai/core/json_search.py`
+    - `search_faq_json` and token/concept matching utilities
+  - `health_ai/core/groq_service.py`
+    - `generate_response` (Groq model wrapper + medical assistant prompt)
+- Backend routes/models:
+  - `health_ai/core/urls.py` (all API routes)
+  - `health_ai/core/models.py` (`User`, `Conversation`, `ChatHistory`, `UploadedReport`, `FAQ`)
+- Frontend integration layer:
+  - `frontend/src/api.js` (all HTTP calls, token handling, payload normalization)
+  - `frontend/src/App.js` (auth gate, layout mode, profile/settings shell)
+  - `frontend/src/components/ChatWindow.js` (send/edit/upload/history render)
+  - `frontend/src/components/ChatInput.js` (text/voice/upload UI + preferred language controls)
+  - `frontend/src/components/AuthPage.js` (login/signup + Google OAuth UI flow)
+  - `frontend/src/components/Sidebar.js` (conversation list/new/delete UX)
+  - `frontend/src/App.css` (all responsive/theme styles)
+
 ### A. Authentication Logic (Signup/Login/JWT session)
 
 - Backend
@@ -206,6 +235,13 @@ This file documents:
       - fallback search on original extracted text,
       - translate final answer to `preferred_language` if provided from toggle (otherwise detected language),
       - save `UploadedReport` and `ChatHistory`.
+    - `_extract_text_from_file`:
+      - extension/content-type validation and extraction strategy selection.
+    - `_ocr_image_text`:
+      - image preprocessing variants + OCR attempt loop + fallback config.
+    - `_build_brief_file_summary`:
+      - builds the "Brief Summary from file" section shown in upload response.
+      - recent change: improved Gujarati-PNG OCR summary cleanup by preferring structured fields (`Disease`/`Symptoms`) and filtering OCR gibberish tokens before rendering.
   - `health_ai/core/models.py`
     - `UploadedReport`.
 
@@ -234,6 +270,17 @@ This file documents:
 
 ## 2) Main Files - Current Content/Responsibility Summary
 
+### Recent Important Updates (Current)
+
+- `health_ai/core/views.py`
+  - `_build_brief_file_summary` was refined for Gujarati PNG uploads:
+    - prefers structured extraction (`Disease`, `Symptoms`) when present,
+    - removes frequent OCR noise patterns (short uppercase token garbage / artifact tokens),
+    - falls back to safe readable text when the summary appears noisy.
+  - This change is limited to the brief summary section; FAQ matching and final disease advice logic remain unchanged.
+- Upload flow now consistently uses English-normalized extraction for FAQ matching in Gujarati/Hindi paths, then translates final response to requested language.
+- Gujarati/Hindi specialized output formatting remains line-by-line for readability in localized script output.
+
 ## Backend Main Files
 
 ### `health_ai/core/views.py`
@@ -244,6 +291,7 @@ This file documents:
 - Upload endpoint with OCR/PDF processing.
 - TTS generation and language-aware response pipeline.
 - Preferred-language override support for typed chat/voice chat and report uploads.
+- Includes upload-response brief summary builder (`_build_brief_file_summary`) with OCR-noise hardening for Gujarati image inputs.
 
 ### `health_ai/core/translation.py`
 
@@ -367,6 +415,11 @@ This file documents:
 
 - `health_ai/core/migrations/0006_user_dob_gender.py`
   - Adds `dob` and `gender` fields to `User`.
+
+## Changed Recently (No New File, Important Logic Update)
+
+- `health_ai/core/views.py`
+  - Updated `_build_brief_file_summary` logic to improve Gujarati image-to-any-language brief summary quality and suppress OCR artifact text.
 
 
 ## Notes for Running Current Version
