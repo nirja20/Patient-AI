@@ -5,8 +5,8 @@ AI-powered multilingual healthcare assistant that lets users chat by text/voice 
 ## Tech Stack
 
 ### Frontend
-React (react, react-dom, react-scripts)
-JavaScript (CRA structure)
+**React (react, react-dom, react-scripts)**
+**JavaScript (CRA structure)**
 Axios / Fetch for API integration
 Tailwind/PostCSS support (configured)
 Responsive UI with chat window, sidebar, auth, profile/settings
