@@ -1,4 +1,30 @@
-const BASE_URL = "http://127.0.0.1:8000/api/";
+const DEFAULT_BASE_URL = "http://127.0.0.1:8000/api/";
+const ENV_BASE_URL = (process.env.REACT_APP_API_BASE_URL || "").trim();
+const LOCAL_HOSTS = new Set(["127.0.0.1", "localhost", "::1"]);
+
+function resolveBaseUrl() {
+  const configured = ENV_BASE_URL || DEFAULT_BASE_URL;
+  const browserHostname =
+    typeof window !== "undefined" ? window.location.hostname : "";
+
+  try {
+    const url = new URL(configured);
+    // If frontend is opened from another device, replace localhost API host with
+    // the current page host so requests go to the same machine.
+    if (
+      browserHostname &&
+      LOCAL_HOSTS.has(url.hostname) &&
+      !LOCAL_HOSTS.has(browserHostname)
+    ) {
+      url.hostname = browserHostname;
+    }
+    return url.toString().replace(/\/?$/, "/");
+  } catch (error) {
+    return configured.replace(/\/?$/, "/");
+  }
+}
+
+const BASE_URL = resolveBaseUrl();
 
 const ACCESS_KEY = "mediassist_access_token";
 const REFRESH_KEY = "mediassist_refresh_token";
@@ -24,10 +50,17 @@ async function request(path, options = {}, requireAuth = true) {
     if (token) headers.Authorization = `Bearer ${token}`;
   }
 
-  const response = await fetch(BASE_URL + path, {
-    ...options,
-    headers,
-  });
+  let response;
+  try {
+    response = await fetch(BASE_URL + path, {
+      ...options,
+      headers,
+    });
+  } catch (error) {
+    throw new Error(
+      `Network error: unable to reach API at ${BASE_URL}. Check backend server and REACT_APP_API_BASE_URL.`
+    );
+  }
 
   const contentType = response.headers.get("content-type") || "";
   const rawText = await response.text();

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   sendMessage,
   getConversation,
@@ -17,6 +17,7 @@ function ChatWindow({ activeConversation, refreshConversations }) {
   const [suggestedQuestions, setSuggestedQuestions] = useState([]);
   const [editingMessageId, setEditingMessageId] = useState(null);
   const [editedText, setEditedText] = useState("");
+  const lastBotReplyRef = useRef("");
 
   useEffect(() => {
     loadSuggestedQuestions();
@@ -153,15 +154,82 @@ function ChatWindow({ activeConversation, refreshConversations }) {
     try {
       const data = await getConversation(id);
       setMessages(data);
+      if (Array.isArray(data) && data.length > 0) {
+        const last = data[data.length - 1];
+        lastBotReplyRef.current = last?.response || "";
+      }
     } finally {
       setIsLoadingConversation(false);
     }
   };
 
-  const playAudio = (audioBase64) => {
-    if (!audioBase64) return;
+  const playAudio = async (audioBase64) => {
+    if (!audioBase64) return false;
     const audio = new Audio(`data:audio/mp3;base64,${audioBase64}`);
-    audio.play().catch(() => {});
+    audio.muted = false;
+    audio.volume = 1;
+    try {
+      await audio.play();
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  const speakFallback = (text, preferredLanguage = "auto") =>
+    new Promise((resolve) => {
+      if (!text || !window.speechSynthesis) {
+        resolve(false);
+        return;
+      }
+      const utterance = new SpeechSynthesisUtterance(text);
+      if (preferredLanguage && preferredLanguage !== "auto") {
+        utterance.lang = preferredLanguage;
+      } else {
+        const browserLang = (navigator.language || "en-US").toLowerCase();
+        utterance.lang = browserLang.startsWith("hi")
+          ? "hi-IN"
+          : browserLang.startsWith("gu")
+            ? "gu-IN"
+            : "en-US";
+      }
+      const voices = window.speechSynthesis.getVoices();
+      const langPrefix = utterance.lang.toLowerCase().split("-")[0];
+      const matchedVoice = voices.find((voice) =>
+        (voice.lang || "").toLowerCase().startsWith(langPrefix)
+      );
+      if (matchedVoice) utterance.voice = matchedVoice;
+      window.speechSynthesis.cancel();
+      let settled = false;
+      const timeoutMs = Math.min(45000, Math.max(12000, text.length * 110));
+      const finish = (ok) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timeoutId);
+        resolve(ok);
+      };
+      utterance.onend = () => finish(true);
+      utterance.onerror = () => finish(false);
+      window.speechSynthesis.speak(utterance);
+      const timeoutId = setTimeout(() => finish(false), timeoutMs);
+    });
+
+  const speakWithFallback = async (text, audioBase64, preferredLanguage = "auto") => {
+    if (!text && !audioBase64) return false;
+    const hasBrowserTts =
+      typeof window !== "undefined" &&
+      "speechSynthesis" in window &&
+      typeof window.SpeechSynthesisUtterance !== "undefined";
+
+    if (hasBrowserTts && text) {
+      const spoken = await speakFallback(text, preferredLanguage);
+      if (spoken) return true;
+    }
+
+    if (audioBase64) {
+      return playAudio(audioBase64);
+    }
+    return false;
   };
 
   const handleSend = async (text, options = {}) => {
@@ -182,9 +250,14 @@ function ChatWindow({ activeConversation, refreshConversations }) {
       ...prev,
       { id: data.chat_id, message: text, response: data.response },
     ]);
+    lastBotReplyRef.current = data.response || "";
 
-    if (data.audio_base64) {
-      playAudio(data.audio_base64);
+    if (options.isVoice) {
+      await speakWithFallback(
+        data.response,
+        data.audio_base64,
+        options.preferredLanguage || "auto"
+      );
     }
 
     loadSuggestedQuestions();
@@ -315,6 +388,11 @@ function ChatWindow({ activeConversation, refreshConversations }) {
         onSend={handleSend}
         onUpload={handleUpload}
         onComposeStart={() => setHasStartedComposing(true)}
+        onSpeakerToggle={async (enabled, preferredLanguage) => {
+          if (!enabled) return true;
+          const text = lastBotReplyRef.current || "Speaker is enabled.";
+          return speakWithFallback(text, "", preferredLanguage || "auto");
+        }}
       />
     </div>
   );

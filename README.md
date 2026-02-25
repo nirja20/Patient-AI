@@ -7,6 +7,7 @@ AI-powered multilingual healthcare assistant that enables users to chat via text
 ## 🚀 Tech Stack
 
 **Frontend:** React (CRA) + JavaScript + Tailwind CSS + Axios  
+**Mobile:** React Native (Expo)  
 **Backend:** Django 6 + Django REST Framework + JWT Auth + Google OAuth  
 **OCR & Processing:** pytesseract (images) + pdfplumber (PDFs) + multilingual pipeline (EN/HI/GU)  
 **Database:** PostgreSQL (healthdb)
@@ -50,6 +51,27 @@ python manage.py runserver
 cd frontend
 npm install
 npm start
+```
+
+---
+
+### 3️⃣ Mobile (Android via Expo)
+
+```bash
+cd mobile
+npm install
+copy .env.example .env
+npm start
+```
+
+Use API base URL in `mobile/.env`:
+- Android emulator: `http://10.0.2.2:8000/api/`
+- Physical Android device: `http://<YOUR_PC_LAN_IP>:8000/api/`
+
+If using a physical device, set Django hosts first:
+
+```bash
+set DJANGO_ALLOWED_HOSTS=127.0.0.1,localhost,10.0.2.2,<YOUR_PC_LAN_IP>
 ```
 
 ---

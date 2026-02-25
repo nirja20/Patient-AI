@@ -27,9 +27,16 @@ load_dotenv(BASE_DIR.parent / "frontend" / ".env")
 SECRET_KEY = 'django-insecure-wa2a7lfpjr1#h)(40!v%z7pg)w)^+t-aifylji81zgl!v_x@@@'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv("DJANGO_DEBUG", "true").lower() == "true"
 
-ALLOWED_HOSTS = []
+allowed_hosts_env = os.getenv("DJANGO_ALLOWED_HOSTS", "").strip()
+if allowed_hosts_env:
+    ALLOWED_HOSTS = [host.strip() for host in allowed_hosts_env.split(",") if host.strip()]
+elif DEBUG:
+    # Allows local-network testing (for example login from a phone) in dev only.
+    ALLOWED_HOSTS = ["*"]
+else:
+    ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
 
 
 # Application definition

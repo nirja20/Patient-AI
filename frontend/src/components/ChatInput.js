@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 function UploadIcon() {
   return (
@@ -56,7 +56,7 @@ function SpeakerIcon() {
   );
 }
 
-function ChatInput({ onSend, onUpload, onComposeStart }) {
+function ChatInput({ onSend, onUpload, onComposeStart, onSpeakerToggle }) {
   const [input, setInput] = useState("");
   const [attachedFile, setAttachedFile] = useState(null);
   const [isListening, setIsListening] = useState(false);
@@ -66,11 +66,14 @@ function ChatInput({ onSend, onUpload, onComposeStart }) {
   const [error, setError] = useState("");
   const fileInputRef = useRef(null);
   const recognitionRef = useRef(null);
+  const micActiveRef = useRef(false);
   const micBaseInputRef = useRef("");
   const micFinalTextRef = useRef("");
 
   const handleSend = async () => {
     const message = input.trim();
+    const usedVoiceInput = hasMicDraft || micActiveRef.current;
+
     if (!message && !attachedFile) {
       setError("Please enter a message or attach a file before sending.");
       return;
@@ -86,12 +89,19 @@ function ChatInput({ onSend, onUpload, onComposeStart }) {
       }
 
       if (message) {
+        if (usedVoiceInput) {
+          stopMic();
+          micBaseInputRef.current = "";
+          micFinalTextRef.current = "";
+          setHasMicDraft(false);
+        }
+        setInput("");
+
         await onSend(message, {
-          isVoice: speakEnabled || hasMicDraft,
+          isVoice: speakEnabled || usedVoiceInput,
           preferredLanguage: voiceLang,
         });
-        setInput("");
-        setHasMicDraft(false);
+        if (!usedVoiceInput) setHasMicDraft(false);
       }
     } catch (sendError) {
       setError(sendError?.message || "Failed to send. Please try again.");
@@ -118,41 +128,78 @@ function ChatInput({ onSend, onUpload, onComposeStart }) {
     setAttachedFile(null);
   };
 
-  const handleVoiceInput = () => {
+  const stopMic = () => {
+    micActiveRef.current = false;
+    const active = recognitionRef.current;
+    if (active) {
+      try {
+        active.onend = null;
+        active.onerror = null;
+        active.stop();
+      } catch {
+        // Ignore stop errors from stale recognizers.
+      }
+    }
+    recognitionRef.current = null;
+    setIsListening(false);
+  };
+
+  const resolveRecognitionLang = () => {
+    if (voiceLang !== "auto") return voiceLang;
+    const browserLang = (navigator.language || "en-US").toLowerCase();
+    if (browserLang.startsWith("hi")) return "hi-IN";
+    if (browserLang.startsWith("gu")) return "gu-IN";
+    return "en-US";
+  };
+
+  const startMicSession = () => {
     const SpeechRecognition =
       window.SpeechRecognition || window.webkitSpeechRecognition;
 
     if (!SpeechRecognition) {
-      alert("Voice input is not supported in this browser.");
+      setError("Mic is not supported in this browser. Use Chrome or Edge.");
+      micActiveRef.current = false;
       return;
     }
-
-    if (isListening && recognitionRef.current) {
-      recognitionRef.current.stop();
-      return;
-    }
-    if (onComposeStart) onComposeStart();
-
-    const resolveRecognitionLang = () => {
-      if (voiceLang !== "auto") return voiceLang;
-      const browserLang = (navigator.language || "en-US").toLowerCase();
-      if (browserLang.startsWith("hi")) return "hi-IN";
-      if (browserLang.startsWith("gu")) return "gu-IN";
-      return "en-US";
-    };
 
     const recognition = new SpeechRecognition();
     recognition.lang = resolveRecognitionLang();
-    recognition.continuous = true;
+    recognition.continuous = false;
     recognition.interimResults = true;
     recognition.maxAlternatives = 1;
     recognitionRef.current = recognition;
-    micBaseInputRef.current = input.trim();
-    micFinalTextRef.current = "";
 
-    recognition.onstart = () => setIsListening(true);
-    recognition.onend = () => setIsListening(false);
-    recognition.onerror = () => setIsListening(false);
+    recognition.onstart = () => {
+      setIsListening(true);
+      if (error) setError("");
+    };
+    recognition.onend = () => {
+      setIsListening(false);
+      micActiveRef.current = false;
+      recognitionRef.current = null;
+    };
+    recognition.onerror = (event) => {
+      const code = String(event?.error || "");
+      if (code === "not-allowed" || code === "service-not-allowed") {
+        setError(
+          "Microphone blocked. In Chrome: lock icon > Site settings > Microphone: Allow, then reload."
+        );
+        stopMic();
+        return;
+      }
+      if (code === "network") {
+        setError("Mic recognition network error. Check connection and try again.");
+        stopMic();
+        return;
+      }
+      if (code === "audio-capture") {
+        setError("Microphone unavailable. Check your system mic settings and try again.");
+        stopMic();
+        return;
+      }
+      setError(`Microphone error: ${code || "unknown"}.`);
+      stopMic();
+    };
     recognition.onresult = (event) => {
       let interim = "";
       for (let i = event.resultIndex; i < event.results.length; i += 1) {
@@ -175,7 +222,53 @@ function ChatInput({ onSend, onUpload, onComposeStart }) {
       if (onComposeStart) onComposeStart();
     };
 
-    recognition.start();
+    try {
+      recognition.start();
+    } catch {
+      setIsListening(false);
+      micActiveRef.current = false;
+      recognitionRef.current = null;
+    }
+  };
+
+  const isSecureMicContext = () => {
+    if (typeof window === "undefined") return true;
+    if (window.isSecureContext) return true;
+    const host = window.location.hostname;
+    return host === "localhost" || host === "127.0.0.1" || host === "::1";
+  };
+
+  const handleVoiceInput = async () => {
+    if (micActiveRef.current) {
+      stopMic();
+      return;
+    }
+
+    if (!isSecureMicContext()) {
+      setError("Mic works only on HTTPS (or localhost). Open the website over HTTPS.");
+      return;
+    }
+
+    if (onComposeStart) onComposeStart();
+    micBaseInputRef.current = input.trim();
+    micFinalTextRef.current = "";
+    setError("");
+    micActiveRef.current = true;
+    startMicSession();
+  };
+
+  useEffect(() => () => stopMic(), []);
+
+  const handleSpeakerToggle = async () => {
+    const next = !speakEnabled;
+    setSpeakEnabled(next);
+    if (!onSpeakerToggle) return;
+    const ok = await onSpeakerToggle(next, voiceLang);
+    if (next && ok === false) {
+      setError("Speaker test failed. Check browser/system sound settings.");
+    } else if (next && error) {
+      setError("");
+    }
   };
 
   return (
@@ -228,7 +321,7 @@ function ChatInput({ onSend, onUpload, onComposeStart }) {
           className={`speak-btn ${speakEnabled ? "active" : ""}`}
           title="Speak bot reply for typed messages"
           aria-label="Speak bot reply for typed messages"
-          onClick={() => setSpeakEnabled((prev) => !prev)}
+          onClick={handleSpeakerToggle}
         >
           <SpeakerIcon />
         </button>
@@ -249,12 +342,12 @@ function ChatInput({ onSend, onUpload, onComposeStart }) {
           type="text"
           value={input}
           placeholder="Send a message..."
-        onChange={(e) => {
-          setInput(e.target.value);
-          if (!isListening) setHasMicDraft(false);
-          if (e.target.value && onComposeStart) onComposeStart();
-          if (error) setError("");
-        }}
+          onChange={(e) => {
+            setInput(e.target.value);
+            if (!isListening) setHasMicDraft(false);
+            if (e.target.value && onComposeStart) onComposeStart();
+            if (error) setError("");
+          }}
           onKeyDown={(e) => e.key === "Enter" && handleSend()}
         />
 
