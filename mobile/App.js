@@ -136,10 +136,15 @@ function normalizeRomanIndic(text, selectedLang) {
 
   const map = isHindi ? HINDI_ROMAN_MAP : GUJARATI_ROMAN_MAP;
   let converted = ` ${value.toLowerCase()} `;
+  let changed = false;
   map.forEach(([roman, nativeWord]) => {
     const pattern = new RegExp(`\\b${roman}\\b`, 'g');
-    converted = converted.replace(pattern, nativeWord);
+    if (pattern.test(converted)) {
+      changed = true;
+      converted = converted.replace(pattern, nativeWord);
+    }
   });
+  if (!changed) return input;
   return converted.replace(/\s+/g, ' ').trim();
 }
 
@@ -702,8 +707,7 @@ export default function App() {
   };
 
   const handleMessageInputChange = (value) => {
-    const next = normalizeRomanIndic(value, lang);
-    setMessageInput(next);
+    setMessageInput(value);
   };
 
   const handleSend = async (textFromSuggestion = '') => {

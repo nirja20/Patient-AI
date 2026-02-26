@@ -10,12 +10,29 @@
     ],
     "android": {
       "package": "com.futurrizon.patientchatbot",
+      "usesCleartextTraffic": true,
+      "permissions": [
+        "INTERNET"
+      ],
       "softwareKeyboardLayoutMode": "resize"
     },
     "plugins": [
       "expo-asset",
       "expo-web-browser",
-      "@react-native-community/datetimepicker"
-    ]
+      "@react-native-community/datetimepicker",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "7fb814a4-9624-4e04-a55c-92a14c6356b1"
+      }
+    }
   }
 }

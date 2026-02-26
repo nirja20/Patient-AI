@@ -27,6 +27,7 @@ export async function getStoredAccessToken() {
 
 async function request(path, options = {}, requireAuth = true) {
   const headers = { ...(options.headers || {}) };
+  const baseUrl = getApiBaseUrl();
 
   if (requireAuth) {
     const token = await getAccessToken();
@@ -35,10 +36,17 @@ async function request(path, options = {}, requireAuth = true) {
     }
   }
 
-  const response = await fetch(getApiBaseUrl() + path, {
-    ...options,
-    headers,
-  });
+  let response;
+  try {
+    response = await fetch(baseUrl + path, {
+      ...options,
+      headers,
+    });
+  } catch (error) {
+    throw new Error(
+      `Network error: unable to reach API at ${baseUrl}. Ensure backend is running, phone is on same network, and this URL opens on your phone browser.`
+    );
+  }
 
   const contentType = response.headers.get('content-type') || '';
   const rawText = await response.text();
