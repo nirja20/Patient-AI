@@ -241,7 +241,7 @@ function App() {
           {isProfileOpen ? (
             <div className="profile-dropdown">
               <div className="profile-email">{user.email}</div>
-              {isAdminUser ? (
+              
                 <button
                   className="profile-dropdown-btn"
                   onClick={() => {
@@ -251,7 +251,7 @@ function App() {
                 >
                   Settings
                 </button>
-              ) : null}
+              
               <button className="profile-dropdown-btn" onClick={openProfileModal}>
                 Profile
               </button>
