@@ -19,6 +19,8 @@ function AuthPage({ onAuthSuccess, initialMode = "login", onBack }) {
       if (!window.google?.accounts?.id || !googleBtnRef.current) return;
       window.google.accounts.id.initialize({
         client_id: googleClientId,
+        auto_select: false,
+        ux_mode: "popup",
         callback: async (response) => {
           setError("");
           setLoading(true);
