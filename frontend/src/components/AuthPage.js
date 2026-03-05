@@ -40,7 +40,7 @@ function AuthPage({ onAuthSuccess, initialMode = "login", onBack }) {
       googleBtnRef.current.innerHTML = "";
       const buttonWidth = Math.floor(googleBtnRef.current.getBoundingClientRect().width);
       window.google.accounts.id.renderButton(googleBtnRef.current, {
-        type: "icon",
+        type: "standard",
         theme: "outline",
         size: "large",
         text: "continue_with",
