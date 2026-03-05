@@ -40,13 +40,14 @@ function AuthPage({ onAuthSuccess, initialMode = "login", onBack }) {
       googleBtnRef.current.innerHTML = "";
       const buttonWidth = Math.floor(googleBtnRef.current.getBoundingClientRect().width);
       window.google.accounts.id.renderButton(googleBtnRef.current, {
-        type: "standard",
+        type: "icon",
         theme: "outline",
         size: "large",
-        text: "signin_with",
+        text: "continue_with",
         shape: "rectangular",
         width: buttonWidth > 0 ? buttonWidth : 360,
       });
+      window.google.accounts.id.cancel();
       setGoogleReady(true);
     };
 
