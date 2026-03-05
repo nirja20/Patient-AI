@@ -20,7 +20,8 @@ function AuthPage({ onAuthSuccess, initialMode = "login", onBack }) {
       window.google.accounts.id.initialize({
         client_id: googleClientId,
         auto_select: false,
-        ux_mode: "popup",
+        cancel_on_tap_outside: false,
+        use_fedcm_for_prompt: false,
         callback: async (response) => {
           setError("");
           setLoading(true);
@@ -34,6 +35,7 @@ function AuthPage({ onAuthSuccess, initialMode = "login", onBack }) {
           }
         },
       });
+      window.google.accounts.id.disableAutoSelect();
 
       googleBtnRef.current.innerHTML = "";
       const buttonWidth = Math.floor(googleBtnRef.current.getBoundingClientRect().width);
