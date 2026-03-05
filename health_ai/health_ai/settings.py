@@ -25,10 +25,11 @@ load_dotenv(BASE_DIR.parent / "frontend" / ".env")
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-wa2a7lfpjr1#h)(40!v%z7pg)w)^+t-aifylji81zgl!v_x@@@'
+SECRET_KEY = os.getenv("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DJANGO_DEBUG", "true").lower() == "true"
+
 
 allowed_hosts_env = os.getenv("DJANGO_ALLOWED_HOSTS", "").strip()
 if allowed_hosts_env:
@@ -105,7 +106,9 @@ WSGI_APPLICATION = 'health_ai.wsgi.application'
 DATABASES = {
     'default': dj_database_url.parse(os.getenv("DATABASE_URL"))
 }
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
+MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
@@ -141,7 +144,9 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
-STATIC_URL = 'static/'
+#STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+
 CORS_ALLOW_ALL_ORIGINS = True
 AUTH_USER_MODEL = 'core.User'
 
