@@ -1,4 +1,5 @@
 import * as Google from 'expo-auth-session/providers/google';
+import * as AuthSession from 'expo-auth-session';
 import * as WebBrowser from 'expo-web-browser';
 import Constants from 'expo-constants';
 import { googleLogin } from './src/api/client';
@@ -384,6 +385,7 @@ function AuthForm({ mode, error, pending, onSubmit, onBack, onSwitchMode, onGoog
 
             {error ? <Text style={styles.err}>{error}</Text> : null}
 
+            {request && (
             <Pressable
               style={{
                 marginTop:10,
@@ -396,6 +398,7 @@ function AuthForm({ mode, error, pending, onSubmit, onBack, onSwitchMode, onGoog
               >
                 <Text style={{ fontWeight:"700"}}>Sign in with Google</Text>
               </Pressable>
+            )}
 
 
             <Pressable
@@ -432,6 +435,9 @@ export default function App() {
   const [request, response, promptAsync] = Google.useAuthRequest({
   expoClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
   androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
+  redirectUri: AuthSession.makeRedirectUri({
+    useProxy: true,
+  }),
 });
 
   const [conversations, setConversations] = useState([]);
@@ -978,7 +984,7 @@ export default function App() {
         onBack={() => setAuthView('landing')}
         onSwitchMode={() => setAuthMode((p) => (p === 'login' ? 'signup' : 'login'))}
 
-        onGooglePress={() => promptAsync()}
+        onGooglePress={() => promptAsync({useProxy: true})}
       />
     );
   }
