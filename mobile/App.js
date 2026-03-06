@@ -1,3 +1,9 @@
+import * as Google from 'expo-auth-session/providers/google';
+import * as WebBrowser from 'expo-web-browser';
+import Constants from 'expo-constants';
+import { googleLogin } from './src/api/client';
+
+WebBrowser.maybeCompleteAuthSession();
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
@@ -349,7 +355,7 @@ function Landing({ onLogin, onSignup, onOpenAuthMode, palette, topOffset }) {
   );
 }
 
-function AuthForm({ mode, error, pending, onSubmit, onBack, onSwitchMode }) {
+function AuthForm({ mode, error, pending, onSubmit, onBack, onSwitchMode, onGooglePress }) {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -377,6 +383,20 @@ function AuthForm({ mode, error, pending, onSubmit, onBack, onSwitchMode }) {
             <TextInput style={styles.authInput} placeholder="Password" placeholderTextColor="#94a5bf" value={password} onChangeText={setPassword} secureTextEntry />
 
             {error ? <Text style={styles.err}>{error}</Text> : null}
+
+            <Pressable
+              style={{
+                marginTop:10,
+                backgroundColor:"#fff",
+                paddingVertical: 12,
+                borderRadius: 12,
+                alignItems: 'center'
+              }}
+              onPress={onGooglePress}
+              >
+                <Text style={{ fontWeight:"700"}}>Sign in with Google</Text>
+              </Pressable>
+
 
             <Pressable
               style={styles.authBtn}
@@ -408,6 +428,11 @@ export default function App() {
   const [authMode, setAuthMode] = useState('login');
   const [authError, setAuthError] = useState('');
   const [authPending, setAuthPending] = useState(false);
+
+  const [request, response, promptAsync] = Google.useAuthRequest({
+  expoClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+  androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
+});
 
   const [conversations, setConversations] = useState([]);
   const [activeConversation, setActiveConversation] = useState(null);
@@ -443,6 +468,16 @@ export default function App() {
       if (value) setTheme(value);
     });
   }, []);
+
+  useEffect(() => {
+  if (response?.type === 'success') {
+    const { authentication } = response;
+
+    if (authentication?.idToken) {
+      handleGoogleLogin(authentication.idToken);
+    }
+  }
+}, [response]);
 
   const boot = useCallback(async () => {
     setLoading(true);
@@ -609,6 +644,32 @@ export default function App() {
       setAuthPending(false);
     }
   };
+
+  const handleGoogleLogin = async (idToken) => {
+  try {
+    setAuthPending(true);
+
+    const me = await googleLogin(idToken);
+
+    setUser(me);
+    setProfile({
+      username: me.username || '',
+      email: me.email || '',
+      dob: me.dob || '',
+      gender: me.gender || ''
+    });
+
+    setDobDate(parseDate(me.dob));
+    setAuthView('landing');
+
+    await refreshConversations();
+
+  } catch (e) {
+    setAuthError(e.message || 'Google login failed');
+  } finally {
+    setAuthPending(false);
+  }
+};
 
   const handleLogout = async () => {
     await clearAuthTokens();
@@ -916,6 +977,8 @@ export default function App() {
         onSubmit={handleAuth}
         onBack={() => setAuthView('landing')}
         onSwitchMode={() => setAuthMode((p) => (p === 'login' ? 'signup' : 'login'))}
+
+        onGooglePress={() => promptAsync()}
       />
     );
   }
