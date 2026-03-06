@@ -980,6 +980,7 @@ export default function App() {
         mode={authMode}
         error={authError}
         pending={authPending}
+        request={request}
         onSubmit={handleAuth}
         onBack={() => setAuthView('landing')}
         onSwitchMode={() => setAuthMode((p) => (p === 'login' ? 'signup' : 'login'))}
