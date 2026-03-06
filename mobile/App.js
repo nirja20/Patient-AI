@@ -424,6 +424,13 @@ export default function App() {
   const { width } = useWindowDimensions();
   const isCompact = width < 900;
   const topOffset = Platform.OS === 'android' ? Math.max(8, Math.round((RNStatusBar.currentHeight || 0) * 0.7)) : 8;
+  const isExpoGo = Constants.executionEnvironment === 'storeClient' || Constants.appOwnership === 'expo';
+  const owner = String(Constants.expoConfig?.owner || 'nirju').replace(/^@/, '');
+  const slug = String(Constants.expoConfig?.slug || 'patient-chatbot-mobile');
+  const projectNameForProxy = `@${owner}/${slug}`;
+  const googleRedirectUri = isExpoGo
+    ? AuthSession.makeRedirectUri({ useProxy: true, projectNameForProxy })
+    : AuthSession.makeRedirectUri({ scheme: 'patientchatbot' });
 
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
@@ -433,12 +440,13 @@ export default function App() {
   const [authPending, setAuthPending] = useState(false);
 
   const [request, response, promptAsync] = Google.useAuthRequest({
-  expoClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
-  androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
-  redirectUri: AuthSession.makeRedirectUri({
-    useProxy: true,
-  }),
-});
+    expoClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+    webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+    androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
+    redirectUri: googleRedirectUri,
+    scopes: ['openid', 'profile', 'email'],
+    responseType: 'id_token',
+  });
 
   const [conversations, setConversations] = useState([]);
   const [activeConversation, setActiveConversation] = useState(null);
@@ -984,8 +992,16 @@ export default function App() {
         onSubmit={handleAuth}
         onBack={() => setAuthView('landing')}
         onSwitchMode={() => setAuthMode((p) => (p === 'login' ? 'signup' : 'login'))}
-
-        onGooglePress={() => promptAsync({useProxy: true})}
+        onGooglePress={() => {
+          if (isExpoGo) {
+            Alert.alert(
+              'Google Login Not Supported in Expo Go',
+              'Use a development build or installed APK for Google sign-in.'
+            );
+            return;
+          }
+          promptAsync({ useProxy: false });
+        }}
       />
     );
   }
