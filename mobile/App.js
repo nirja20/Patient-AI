@@ -356,7 +356,7 @@ function Landing({ onLogin, onSignup, onOpenAuthMode, palette, topOffset }) {
   );
 }
 
-function AuthForm({ mode, error, pending, onSubmit, onBack, onSwitchMode, onGooglePress }) {
+function AuthForm({ mode, error, pending, request, onSubmit, onBack, onSwitchMode, onGooglePress }) {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
