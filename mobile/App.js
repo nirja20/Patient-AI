@@ -364,7 +364,7 @@ function Landing({ onLogin, onSignup, onOpenAuthMode, palette, topOffset }) {
   );
 }
 
-function AuthForm({ mode, error, pending, onSubmit, onBack, onSwitchMode, onGooglePress }) {
+function AuthForm({ mode, error, pending, onSubmit, onBack, onSwitchMode, onGooglePress, onGoogleLongPress }) {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -394,19 +394,20 @@ function AuthForm({ mode, error, pending, onSubmit, onBack, onSwitchMode, onGoog
             {error ? <Text style={styles.err}>{error}</Text> : null}
 
            (
-            <Pressable
-              style={{
-                marginTop:10,
-                backgroundColor:"#fff",
-                paddingVertical: 12,
-                borderRadius: 12,
-                alignItems: 'center'
-              }}
-              onPress={onGooglePress}
-              >
-                <Text style={{ fontWeight:"700"}}>Sign in with Google</Text>
-              </Pressable>
-            )
+             <Pressable
+               style={{
+                 marginTop:10,
+                 backgroundColor:"#fff",
+                 paddingVertical: 12,
+                 borderRadius: 12,
+                 alignItems: 'center'
+               }}
+               onPress={onGooglePress}
+               onLongPress={onGoogleLongPress}
+               >
+                 <Text style={{ fontWeight:"700"}}>Sign in with Google</Text>
+               </Pressable>
+             )
 
 
             <Pressable
@@ -686,16 +687,76 @@ export default function App() {
         setAuthError('Google Sign-In is not available in Expo Go. Use installed APK/dev build.');
         return;
       }
+
       const GoogleSignin = getGoogleSigninModule();
       if (!GoogleSignin) {
         setAuthError('Google Sign-In module not found in this build.');
         return;
       }
+
       await GoogleSignin.hasPlayServices();
       const userInfo = await GoogleSignin.signIn();
-      const idToken = userInfo.idToken;
+      let idToken = userInfo?.idToken || null;
+      if (!idToken) {
+        try {
+          const tokens = await GoogleSignin.getTokens();
+          idToken = tokens?.idToken || null;
+        } catch {}
+      }
+      if (!idToken) {
+        throw new Error('Missing Google idToken');
+      }
       const me = await googleLogin(idToken);
       
+      setUser(me);
+      setProfile({
+        username: me.username || '',
+        email: me.email || '',
+        dob: me.dob || '',
+        gender: me.gender || ''
+      });
+      setDobDate(parseDate(me.dob));
+      setAuthView('landing');
+      await refreshConversations();
+    } catch (error) {
+      console.log(error);
+      setAuthError('Google Login failed');
+    }
+  };
+
+  // Optional: long-press Google button to force account chooser.
+  const handleGoogleLoginChooseAccount = async () => {
+    try {
+      if (isExpoGo) {
+        setAuthError('Google Sign-In is not available in Expo Go. Use installed APK/dev build.');
+        return;
+      }
+
+      const GoogleSignin = getGoogleSigninModule();
+      if (!GoogleSignin) {
+        setAuthError('Google Sign-In module not found in this build.');
+        return;
+      }
+
+      await GoogleSignin.hasPlayServices();
+      try {
+        await GoogleSignin.signOut();
+      } catch {}
+
+      const userInfo = await GoogleSignin.signIn();
+      let idToken = userInfo?.idToken || null;
+      if (!idToken) {
+        try {
+          const tokens = await GoogleSignin.getTokens();
+          idToken = tokens?.idToken || null;
+        } catch {}
+      }
+      if (!idToken) {
+        throw new Error('Missing Google idToken');
+      }
+
+      const me = await googleLogin(idToken);
+
       setUser(me);
       setProfile({
         username: me.username || '',
@@ -1046,6 +1107,7 @@ export default function App() {
         onBack={() => setAuthView('landing')}
         onSwitchMode={() => setAuthMode((p) => (p === 'login' ? 'signup' : 'login'))}
         onGooglePress={handleGoogleLogin}
+        onGoogleLongPress={handleGoogleLoginChooseAccount}
         /*onGooglePress={() => {
           if (isExpoGo) {
             Alert.alert(
