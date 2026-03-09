@@ -1,10 +1,10 @@
-import * as Google from 'expo-auth-session/providers/google';
-import * as AuthSession from 'expo-auth-session';
-import * as WebBrowser from 'expo-web-browser';
+/*import * as Google from 'expo-auth-session/providers/google';*/
+/*import * as AuthSession from 'expo-auth-session';
+import * as WebBrowser from 'expo-web-browser';*/
 import Constants from 'expo-constants';
 import { googleLogin } from './src/api/client';
 
-WebBrowser.maybeCompleteAuthSession();
+/*WebBrowser.maybeCompleteAuthSession();*/
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
@@ -76,6 +76,14 @@ const SPEECH_LANG_MAP = {
 const DEVANAGARI_RE = /[\u0900-\u097F]/;
 const GUJARATI_RE = /[\u0A80-\u0AFF]/;
 const ROMAN_WORD_RE = /^[a-z\s.,!?'"-]+$/i;
+
+function getGoogleSigninModule() {
+  try {
+    return require('@react-native-google-signin/google-signin').GoogleSignin;
+  } catch {
+    return null;
+  }
+}
 
 const HINDI_ROMAN_MAP = [
   ['mujhe', 'मुझे'],
@@ -356,7 +364,7 @@ function Landing({ onLogin, onSignup, onOpenAuthMode, palette, topOffset }) {
   );
 }
 
-function AuthForm({ mode, error, pending, request, onSubmit, onBack, onSwitchMode, onGooglePress }) {
+function AuthForm({ mode, error, pending, onSubmit, onBack, onSwitchMode, onGooglePress }) {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -385,7 +393,7 @@ function AuthForm({ mode, error, pending, request, onSubmit, onBack, onSwitchMod
 
             {error ? <Text style={styles.err}>{error}</Text> : null}
 
-            {request && (
+           (
             <Pressable
               style={{
                 marginTop:10,
@@ -398,7 +406,7 @@ function AuthForm({ mode, error, pending, request, onSubmit, onBack, onSwitchMod
               >
                 <Text style={{ fontWeight:"700"}}>Sign in with Google</Text>
               </Pressable>
-            )}
+            )
 
 
             <Pressable
@@ -425,12 +433,13 @@ export default function App() {
   const isCompact = width < 900;
   const topOffset = Platform.OS === 'android' ? Math.max(8, Math.round((RNStatusBar.currentHeight || 0) * 0.7)) : 8;
   const isExpoGo = Constants.executionEnvironment === 'storeClient' || Constants.appOwnership === 'expo';
+  /*const isExpoGo = Constants.executionEnvironment === 'storeClient' || Constants.appOwnership === 'expo';
   const owner = String(Constants.expoConfig?.owner || 'nirju').replace(/^@/, '');
   const slug = String(Constants.expoConfig?.slug || 'patient-chatbot-mobile');
   const projectNameForProxy = `@${owner}/${slug}`;
   const googleRedirectUri = isExpoGo
     ? AuthSession.makeRedirectUri({ useProxy: true, projectNameForProxy })
-    : AuthSession.makeRedirectUri({ scheme: 'patientchatbot' });
+    : undefined;*/
 
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
@@ -439,14 +448,14 @@ export default function App() {
   const [authError, setAuthError] = useState('');
   const [authPending, setAuthPending] = useState(false);
 
-  const [request, response, promptAsync] = Google.useAuthRequest({
+  /*const [request, response, promptAsync] = Google.useAuthRequest({
     expoClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
     webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
-    androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
-    redirectUri: googleRedirectUri,
+    androidClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+    ...(googleRedirectUri ? { redirectUri: googleRedirectUri } : {}),
     scopes: ['openid', 'profile', 'email'],
-    responseType: 'id_token',
-  });
+    /*responseType: 'id_token',
+  });*/
 
   const [conversations, setConversations] = useState([]);
   const [activeConversation, setActiveConversation] = useState(null);
@@ -484,6 +493,18 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    if (isExpoGo) return;
+    const GoogleSignin = getGoogleSigninModule();
+    if (!GoogleSignin) return;
+    GoogleSignin.configure({
+      webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+      offlineAccess: true,
+      scopes: ['profile', 'email'],
+    });
+  }, [isExpoGo]);
+
+
+  /*useEffect(() => {
   if (response?.type === 'success') {
     const { authentication } = response;
 
@@ -491,7 +512,7 @@ export default function App() {
       handleGoogleLogin(authentication.idToken);
     }
   }
-}, [response]);
+}, [response]);*/
 
   const boot = useCallback(async () => {
     setLoading(true);
@@ -659,7 +680,39 @@ export default function App() {
     }
   };
 
-  const handleGoogleLogin = async (idToken) => {
+  const handleGoogleLogin = async () => {
+    try {
+      if (isExpoGo) {
+        setAuthError('Google Sign-In is not available in Expo Go. Use installed APK/dev build.');
+        return;
+      }
+      const GoogleSignin = getGoogleSigninModule();
+      if (!GoogleSignin) {
+        setAuthError('Google Sign-In module not found in this build.');
+        return;
+      }
+      await GoogleSignin.hasPlayServices();
+      const userInfo = await GoogleSignin.signIn();
+      const idToken = userInfo.idToken;
+      const me = await googleLogin(idToken);
+      
+      setUser(me);
+      setProfile({
+        username: me.username || '',
+        email: me.email || '',
+        dob: me.dob || '',
+        gender: me.gender || ''
+      });
+      setDobDate(parseDate(me.dob));
+      setAuthView('landing');
+      await refreshConversations();
+    } catch (error) {
+      console.log(error);
+      setAuthError('Google Login failed');
+    }
+  };
+
+  /*const handleGoogleLogin = async (idToken) => {
   try {
     setAuthPending(true);
 
@@ -683,7 +736,7 @@ export default function App() {
   } finally {
     setAuthPending(false);
   }
-};
+};*/
 
   const handleLogout = async () => {
     await clearAuthTokens();
@@ -988,11 +1041,12 @@ export default function App() {
         mode={authMode}
         error={authError}
         pending={authPending}
-        request={request}
+        /*request={request}*/
         onSubmit={handleAuth}
         onBack={() => setAuthView('landing')}
         onSwitchMode={() => setAuthMode((p) => (p === 'login' ? 'signup' : 'login'))}
-        onGooglePress={() => {
+        onGooglePress={handleGoogleLogin}
+        /*onGooglePress={() => {
           if (isExpoGo) {
             Alert.alert(
               'Google Login Not Supported in Expo Go',
@@ -1001,7 +1055,7 @@ export default function App() {
             return;
           }
           promptAsync({ useProxy: false });
-        }}
+        }}*/
       />
     );
   }

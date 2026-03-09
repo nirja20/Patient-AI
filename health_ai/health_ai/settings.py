@@ -170,3 +170,15 @@ GOOGLE_CLIENT_ID = (
     os.environ.get("GOOGLE_CLIENT_ID")
     or os.environ.get("REACT_APP_GOOGLE_CLIENT_ID", "")
 )
+GOOGLE_CLIENT_IDS = []
+_google_client_ids_raw = os.environ.get("GOOGLE_CLIENT_IDS", "")
+if _google_client_ids_raw:
+    GOOGLE_CLIENT_IDS.extend(
+        [v.strip() for v in _google_client_ids_raw.split(",") if v.strip()]
+    )
+
+_google_android_client_id = os.environ.get("GOOGLE_ANDROID_CLIENT_ID", "").strip()
+_google_ios_client_id = os.environ.get("GOOGLE_IOS_CLIENT_ID", "").strip()
+for _candidate in (GOOGLE_CLIENT_ID, _google_android_client_id, _google_ios_client_id):
+    if _candidate and _candidate not in GOOGLE_CLIENT_IDS:
+        GOOGLE_CLIENT_IDS.append(_candidate)

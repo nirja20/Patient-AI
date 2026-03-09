@@ -555,7 +555,11 @@ def google_login_view(request):
     if not id_token_value:
         return Response({"error": "id_token is required for Google sign-in."}, status=status.HTTP_400_BAD_REQUEST)
 
-    if not settings.GOOGLE_CLIENT_ID:
+    client_ids = getattr(settings, "GOOGLE_CLIENT_IDS", None) or (
+        [settings.GOOGLE_CLIENT_ID] if getattr(settings, "GOOGLE_CLIENT_ID", "") else []
+    )
+
+    if not client_ids:
         return Response(
             {"error": "Google OAuth is not configured on server."},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -570,13 +574,27 @@ def google_login_view(request):
             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
-    try:
-        token_info = google_id_token.verify_oauth2_token(
-            id_token_value,
-            google_requests.Request(),
-            settings.GOOGLE_CLIENT_ID,
-        )
-    except Exception:
+    token_info = None
+    last_value_error = None
+    for client_id in client_ids:
+        try:
+            token_info = google_id_token.verify_oauth2_token(
+                id_token_value,
+                google_requests.Request(),
+                client_id,
+            )
+            break
+        except ValueError as exc:
+            last_value_error = exc
+            continue
+        except Exception:
+            return Response(
+                {"error": "Google token verification failed."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+    if not token_info:
+        _ = last_value_error
         return Response({"error": "Invalid Google token."}, status=status.HTTP_401_UNAUTHORIZED)
 
     email = (token_info.get("email") or "").strip()
