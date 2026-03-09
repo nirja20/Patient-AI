@@ -16,6 +16,10 @@ from datetime import date
 import secrets
 import re
 import shutil
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 
 def _contains_devanagari(text):
@@ -553,6 +557,7 @@ def google_login_view(request):
     id_token_value = (request.data.get("id_token") or "").strip()
 
     if not id_token_value:
+        logger.warning("Google login failed: missing id_token.")
         return Response({"error": "id_token is required for Google sign-in."}, status=status.HTTP_400_BAD_REQUEST)
 
     client_ids = getattr(settings, "GOOGLE_CLIENT_IDS", None) or (
@@ -576,6 +581,13 @@ def google_login_view(request):
 
     token_info = None
     last_value_error = None
+
+    def _redact_client_id(value: str) -> str:
+        value = (value or "").strip()
+        if len(value) <= 12:
+            return value
+        return f"{value[:6]}...{value[-6:]}"
+
     for client_id in client_ids:
         try:
             token_info = google_id_token.verify_oauth2_token(
@@ -586,8 +598,14 @@ def google_login_view(request):
             break
         except ValueError as exc:
             last_value_error = exc
+            logger.warning(
+                "Google token verification failed for audience %s: %s",
+                _redact_client_id(client_id),
+                str(exc),
+            )
             continue
         except Exception:
+            logger.exception("Google token verification failed due to server error.")
             return Response(
                 {"error": "Google token verification failed."},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -595,6 +613,11 @@ def google_login_view(request):
 
     if not token_info:
         _ = last_value_error
+        logger.warning(
+            "Google login failed: token invalid for all audiences. audiences=%s last_error=%s",
+            [_redact_client_id(cid) for cid in client_ids],
+            str(last_value_error) if last_value_error else "",
+        )
         return Response({"error": "Invalid Google token."}, status=status.HTTP_401_UNAUTHORIZED)
 
     email = (token_info.get("email") or "").strip()

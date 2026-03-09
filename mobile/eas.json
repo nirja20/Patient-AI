@@ -7,7 +7,7 @@
       "distribution": "internal",
       "env": {
         "EXPO_PUBLIC_API_BASE_URL": "https://patient-ai-backend.onrender.com/api/",
-        "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "637810741083-g47hpaeng64ftrev5c9g1scch1hm77u8.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "637810741083-2qelpr17kgptvu915smejv2uqasaj8rd.apps.googleusercontent.com",
         "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "637810741083-t32odl178ihb8bkfiv45e9vkug27jjam.apps.googleusercontent.com"
 
       },
@@ -18,7 +18,7 @@
     "production": {
       "env": {
         "EXPO_PUBLIC_API_BASE_URL": "https://patient-ai-backend.onrender.com/api/",
-        "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "637810741083-g47hpaeng64ftrev5c9g1scch1hm77u8.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "637810741083-2qelpr17kgptvu915smejv2uqasaj8rd.apps.googleusercontent.com",
         "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "637810741083-t32odl178ihb8bkfiv45e9vkug27jjam.apps.googleusercontent.com"
 
       },
